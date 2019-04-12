@@ -4,21 +4,29 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using webmonitor.Models;
 
 namespace webmonitor.Controllers
 {
     public class HomeController : Controller
     {
+        private readonly IConfiguration Config;
+
+        public HomeController(IConfiguration config)
+        {
+            Config = config;
+        }
+
         public IActionResult Index()
         {
+            ViewData["Assets"] = Config["Assets"];
+            ViewData["WelcomeMessage"] = Config["WelcomeMessage"];
             return View();
         }
 
         public IActionResult About()
         {
-            ViewData["Message"] = "Your application description page.";
-
             return View();
         }
 
