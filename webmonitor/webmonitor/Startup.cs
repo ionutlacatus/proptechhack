@@ -7,8 +7,10 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using webmonitor.Models;
 
 namespace webmonitor
 {
@@ -33,6 +35,7 @@ namespace webmonitor
 
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            services.AddDbContext<SigfoxDb1>(item => item.UseSqlServer(Configuration.GetConnectionString("sigfoxdb1")));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -51,6 +54,12 @@ namespace webmonitor
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseCookiePolicy();
+
+            app.UseCors(corsPolicyBuilder =>
+               corsPolicyBuilder.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+            );
 
             app.UseMvc(routes =>
             {
