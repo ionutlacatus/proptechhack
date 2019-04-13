@@ -14,5 +14,8 @@ namespace webmonitor.Models
         }
 
         public DbSet<SigfoxPayload> SigFoxPayloads { get; set; }
+        public DbSet<Sensor> Sensors { get; set; }
+        public DbSet<Reservation> Reservations { get; set; }
+        public DbSet<User> Users { get; set; }
     }
 }

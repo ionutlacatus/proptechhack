@@ -34,7 +34,11 @@ namespace webmonitor
             });
 
 
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            services.AddMvc()
+                .AddJsonOptions(options => {
+                    options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+                })
+                .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
             services.AddDbContext<SigfoxDb1>(item => item.UseSqlServer(Configuration.GetConnectionString("sigfoxdb1")));
         }
 
