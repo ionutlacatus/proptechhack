@@ -17,6 +17,6 @@ namespace webmonitor.Models
         public virtual ICollection<Reservation> Reservations { get; set; }
 
         [NotMapped]
-        public bool IsReserved { get; set; }
+        public string IsReserved { get; set; }
     }
 }

@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -8,6 +11,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using QRCoder;
 using webmonitor.Models;
 
 namespace webmonitor.Controllers
@@ -84,6 +88,23 @@ namespace webmonitor.Controllers
             }
         }
 
+        [Route("api/getqr")]
+        [HttpGet]
+        public ActionResult GetQR(string qrcode)
+        {
+            using (MemoryStream ms = new MemoryStream())
+            {
+                QRCodeGenerator qrGenerator = new QRCodeGenerator();
+                QRCodeData qrCodeData = qrGenerator.CreateQrCode(qrcode, QRCodeGenerator.ECCLevel.Q);
+                QRCode qrCode = new QRCode(qrCodeData);
+                using (Bitmap bitMap = qrCode.GetGraphic(20))
+                {
+                    bitMap.Save(ms, ImageFormat.Png);
+                    return Content("data:image/png;base64," + Convert.ToBase64String(ms.ToArray()));
+                }
+            }
+        }
+
         [Route("api/sensors")]
         public IActionResult GetSensors(bool includeReservations)
         {
@@ -94,10 +115,18 @@ namespace webmonitor.Controllers
                 DateTime now = DateTime.UtcNow;
                 foreach (Sensor sensor in sensors)
                 {
-                    if (sensor.Reservations.Any(r => r.ReservationStartUtc < now && r.ReservationEndUtc > now ))
+                    Reservation reservation = sensor.Reservations.FirstOrDefault(r => r.ReservationStartUtc < now && r.ReservationEndUtc > now);
+                    if (reservation != null)
                     {
-                        sensor.IsReserved = true;
+                        sensor.IsReserved = reservation.UserName;
                     }
+                    SigfoxPayload lastSignal = _db.SigFoxPayloads.Where(s => s.device == sensor.DeviceId)
+                       .OrderByDescending(p => p.timestamp)
+                       .FirstOrDefault();
+                    if (lastSignal == null || lastSignal.seqNumber % 2 == 0)
+                        sensor.IsUsed = false;
+                    else
+                        sensor.IsUsed = true;
                 }
             }
                 
